@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>Temporitzador de Raspallat</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      height: 100%;
+      width: 100vw;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', Arial, sans-serif;
+      box-sizing: border-box;
+      background: #f5f8fb;
+    }
+    body {
+      /* Fons: sempre mostrant el 100% de la imatge sencera, centrada, sense repetició */
+      background: url('fons-pica.png') no-repeat center center fixed;
+      background-size: contain;
+      width: 100vw;
+      height: 100vh;
+      min-height: 100svh;
+      min-width: 100vw;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .app-content {
+      /* Encaixa exactament dins la proporció vertical de la imatge */
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none; /* Per evitar taps fora de la caixa */
+    }
+    .app-box {
+      width: 90vw;
+      max-width: 420px;
+      /* Utilitza la proporció vertical de la imatge! (ajusta segons la teva imatge, exemple: 9/16) */
+      aspect-ratio: 9/16;
+      max-height: 92vh;
+      min-height: 320px;
+      background: rgba(255,255,255,0.80);
+      border-radius: 2rem;
+      box-shadow: 0 2px 18px 0 rgba(21,101,192,0.06);
+      border: 1.5px solid #e3eaf6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      margin: 0 auto;
+      pointer-events: auto; /* Permet clicar dins la caixa */
+      padding: 1.2rem 0.8rem 1.5rem 0.8rem;
+    }
+    .total-timer {
+      font-size: clamp(1.0rem, 2vw, 1.13rem);
+      color: #6882ad;
+      margin-bottom: 1.1rem;
+      margin-top: 0.1rem;
+      letter-spacing: 0.03em;
+      font-weight: 500;
+      width: 100%;
+      text-align: left;
+    }
+    .interval-timer {
+      font-size: clamp(2.2rem, 9vw, 3.8rem);
+      color: #1976d2;
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+      background: #eaf2fb;
+      border-radius: 1.4rem;
+      padding: .22em 0;
+      border: 2.2px solid #1976d2;
+      box-shadow: 0 1px 8px #1976d223;
+      width: 100%;
+      text-align: center;
+      user-select: none;
+    }
+    .section {
+      font-size: clamp(1.05rem, 3.5vw, 1.3rem);
+      margin-bottom: clamp(1rem, 2vw, 1.2rem);
+      margin-top: 0.7rem;
+      text-align: center;
+      color: #1a263a;
+      font-weight: 600;
+      width: 100%;
+      min-height: 2.2em;
+      line-height: 1.14;
+      letter-spacing: 0.01em;
+    }
+    .progress {
+      width: 100%;
+      height: 13px;
+      background: #e3eaf6;
+      border-radius: 8px;
+      margin-bottom: clamp(1rem, 2vw, 1.2rem);
+      overflow: hidden;
+      border: 1.1px solid #c2d3eb;
+    }
+    .bar {
+      height: 100%;
+      background: #1976d2;
+      width: 0;
+      transition: width 0.38s;
+      border-radius: 8px;
+    }
+    .btns {
+      display: flex;
+      gap: 1.1rem;
+      margin-bottom: 0.4rem;
+      width: 100%;
+      justify-content: center;
+    }
+    button {
+      font-size: clamp(0.99rem, 2.7vw, 1.17rem);
+      padding: 0.7em 1.5em;
+      border: none;
+      border-radius: 1.2rem;
+      background: #1976d2;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      box-shadow: 0 2px 7px #1565c022;
+      transition: background .15s, color .13s;
+      flex: 1 1 0;
+      min-width: 90px;
+      max-width: 210px;
+      user-select: none;
+    }
+    button:active {
+      background: #125ea2;
+      color: #dbefff;
+    }
+    button[disabled] {
+      opacity: 0.53;
+      cursor: not-allowed;
+      background: #e3eaf6;
+      color: #a1b2c7;
+    }
+    @media (max-width: 600px) {
+      .app-box {
+        border-radius: 1.1em;
+        box-shadow: 0 2px 8px 0 rgba(21,101,192,0.07);
+        padding: 1rem 0.4rem 1.1rem 0.4rem;
+      }
+      .section { min-height: 1.5em; }
+    }
+    @media (max-width: 380px) {
+      .interval-timer { font-size: 1.1rem; }
+      .section { font-size: 0.93rem; }
+      .btns { gap: 0.4rem;}
+      button { min-width: 60px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="app-content">
+    <div class="app-box">
+      <div class="total-timer" id="total-timer">Temps total: 02:00</div>
+      <div class="interval-timer" id="interval-timer">20</div>
+      <div class="progress"><div class="bar" id="progress-bar"></div></div>
+      <div class="section" id="section-text">Prem <b>Comença</b></div>
+      <div class="btns">
+        <button id="start-btn">Comença</button>
+        <button id="stop-btn" disabled>Atura</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    const zones = [
+      "Superior esquerra",
+      "Superior dreta",
+      "Inferior esquerra",
+      "Inferior dreta",
+      "Frontal superior",
+      "Frontal inferior"
+    ];
+    let totalTime = 120;
+    let intervalTime = 20;
+    let currentZone = 0;
+    let interval, running = false;
+
+    const totalTimerEl = document.getElementById('total-timer');
+    const intervalTimerEl = document.getElementById('interval-timer');
+    const sectionEl = document.getElementById('section-text');
+    const progressBar = document.getElementById('progress-bar');
+    const startBtn = document.getElementById('start-btn');
+    const stopBtn = document.getElementById('stop-btn');
+
+    function updateTimers() {
+      let mins = String(Math.floor(totalTime / 60)).padStart(2, '0');
+      let secs = String(totalTime % 60).padStart(2, '0');
+      totalTimerEl.textContent = `Temps total: ${mins}:${secs}`;
+      intervalTimerEl.textContent = intervalTime;
+      progressBar.style.width = `${(1 - totalTime/120)*100}%`;
+      currentZone = Math.floor((120 - totalTime) / 20);
+      if (totalTime === 0) {
+        sectionEl.textContent = 'Fet! Bon treball!';
+        startBtn.textContent = "Torna a començar";
+        stopBtn.disabled = true;
+        running = false;
+        clearInterval(interval);
+      } else {
+        if (currentZone < zones.length)
+          sectionEl.textContent = `Ara: ${zones[currentZone]}`;
+      }
+    }
+    function resetTimers() {
+      totalTime = 120;
+      intervalTime = 20;
+      currentZone = 0;
+      updateTimers();
+      sectionEl.textContent = 'Prem Comença';
+      intervalTimerEl.textContent = "20";
+      progressBar.style.width = "0%";
+      stopBtn.disabled = true;
+    }
+    startBtn.onclick = function() {
+      if (running) return;
+      running = true;
+      totalTime = 120;
+      intervalTime = 20;
+      currentZone = 0;
+      startBtn.textContent = "En marxa...";
+      stopBtn.disabled = false;
+      updateTimers();
+      interval = setInterval(() => {
+        if (!running) return;
+        if (intervalTime > 1) {
+          intervalTime--;
+        } else {
+          intervalTime = 20;
+        }
+        if (totalTime > 0) totalTime--;
+        updateTimers();
+        if (totalTime === 0) {
+          clearInterval(interval);
+        }
+      }, 1000);
+    };
+    stopBtn.onclick = function() {
+      running = false;
+      clearInterval(interval);
+      startBtn.textContent = "Comença";
+      stopBtn.disabled = true;
+      sectionEl.textContent = "Temporitzador aturat.";
+    };
+    resetTimers();
+  </script>
+</body>
+</html>
